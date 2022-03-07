@@ -1,4 +1,4 @@
-package de.raywo.shellui.logic;
+package de.raywo.banking.textui.logic;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +12,6 @@ public class SavingsAccount extends Account {
   public SavingsAccount(String iban, Customer owner) {
     super(iban, owner);
     this.interestRate = 0;
-    this.accountType = AccountType.SavingsAccount;
+    this.accountType = AccountType.SAVINGS_ACCOUNT;
   }
 }

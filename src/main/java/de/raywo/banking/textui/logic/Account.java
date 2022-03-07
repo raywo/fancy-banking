@@ -1,4 +1,4 @@
-package de.raywo.shellui.logic;
+package de.raywo.banking.textui.logic;
 
 import lombok.Getter;
 import lombok.NonNull;

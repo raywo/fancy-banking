@@ -26,7 +26,8 @@ public class CreateCustomerWindow extends ObservableBasicWindow {
     panel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
 
     final Button createButton = new Button("Anlegen", () -> {
-      Operation createCustomer = Coordinator.instance().getCreateCustomerOperation(this);
+      Operation createCustomer = Coordinator.instance()
+          .getCreateCustomerOperation(this, nameTextBox.getText());
       this.setOperation(createCustomer);
     });
     panel.addComponent(createButton);

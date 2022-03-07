@@ -2,6 +2,8 @@ package de.raywo.banking.textui.ui;
 
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import de.raywo.banking.textui.operations.*;
+import de.raywo.banking.textui.persistence.AccountRepository;
+import de.raywo.banking.textui.persistence.CustomerRepository;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -18,9 +20,8 @@ public class Coordinator implements PropertyChangeListener {
   @Setter
   private MultiWindowTextGUI gui;
 
-  private ObservableBasicWindow mainWindow;
-  private ObservableBasicWindow showAllCustomersWindow;
-  private ObservableBasicWindow createCustomerWindow;
+  private AccountRepository accountRepository = new AccountRepository();
+  private CustomerRepository customerRepository = new CustomerRepository();
 
 
   private Coordinator() {
@@ -65,32 +66,26 @@ public class Coordinator implements PropertyChangeListener {
 
 
   public ObservableBasicWindow getMainWindow() {
-    if (mainWindow == null) {
-      mainWindow = new MainMenuWindow("Hauptmenü");
-      mainWindow.addListener(this);
-    }
+    ObservableBasicWindow window = new MainMenuWindow("Hauptmenü");
+    window.addListener(this);
 
-    return mainWindow;
+    return window;
   }
 
 
   public ObservableBasicWindow getShowAllCustomersWindow() {
-    if (showAllCustomersWindow == null) {
-      showAllCustomersWindow = new ShowAllCustomersWindow("Alle Kunden");
-      showAllCustomersWindow.addListener(this);
-    }
+    ObservableBasicWindow window = new ShowAllCustomersWindow("Alle Kunden", customerRepository);
+    window.addListener(this);
 
-    return showAllCustomersWindow;
+    return window;
   }
 
 
   public ObservableBasicWindow getCreateCustomerWindow() {
-    if (createCustomerWindow == null) {
-      createCustomerWindow = new CreateCustomerWindow("Kunden anlegen");
-      createCustomerWindow.addListener(this);
-    }
+    ObservableBasicWindow window = new CreateCustomerWindow("Kunden anlegen");
+    window.addListener(this);
 
-    return createCustomerWindow;
+    return window;
   }
 
 
@@ -104,8 +99,13 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
-  public Operation getCreateCustomerOperation(ObservableBasicWindow comingFrom) {
-    return new CreateCustomerOperation(this.gui, comingFrom, this.getMainWindow());
+  public Operation getCreateCustomerOperation(ObservableBasicWindow comingFrom, String name) {
+    return new CreateCustomerOperation(
+        this.gui,
+        comingFrom,
+        this.getMainWindow(),
+        customerRepository,
+        name);
   }
 
 

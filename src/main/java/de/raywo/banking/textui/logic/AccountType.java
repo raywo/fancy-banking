@@ -1,8 +1,8 @@
-package de.raywo.shellui.logic;
+package de.raywo.banking.textui.logic;
 
 public enum AccountType {
-  CurrentAccount("Girokonto"),
-  SavingsAccount("Sparkonto");
+  CURRENT_ACCOUNT("Girokonto"),
+  SAVINGS_ACCOUNT("Sparkonto");
 
   public final String typeName;
 

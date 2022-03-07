@@ -1,4 +1,4 @@
-package de.raywo.shellui.logic;
+package de.raywo.banking.textui.logic;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,7 @@ public class CurrentAccount extends Account {
   public CurrentAccount(String iban, Customer owner) {
     super(iban, owner);
     this.limit = BigDecimal.ZERO;
-    this.accountType = AccountType.CurrentAccount;
+    this.accountType = AccountType.CURRENT_ACCOUNT;
   }
 
   public String formattedLimit() {
