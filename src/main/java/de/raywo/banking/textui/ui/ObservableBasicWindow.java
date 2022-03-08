@@ -2,6 +2,7 @@ package de.raywo.banking.textui.ui;
 
 import com.googlecode.lanterna.gui2.BasicWindow;
 import de.raywo.banking.textui.operations.Operation;
+import lombok.Getter;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -11,6 +12,7 @@ import static com.googlecode.lanterna.gui2.Window.Hint.EXPANDED;
 import static com.googlecode.lanterna.gui2.Window.Hint.NO_POST_RENDERING;
 
 public class ObservableBasicWindow extends BasicWindow {
+  @Getter
   private Operation operation;
   private final PropertyChangeSupport changeSupport;
 
@@ -26,6 +28,9 @@ public class ObservableBasicWindow extends BasicWindow {
     );
   }
 
+  public void updateState() {
+    // empty implementation
+  }
 
   public void addListener(PropertyChangeListener listener) {
     changeSupport.addPropertyChangeListener(listener);
@@ -40,10 +45,5 @@ public class ObservableBasicWindow extends BasicWindow {
   protected void setOperation(Operation value) {
     changeSupport.firePropertyChange("operation", this.operation, value);
     this.operation = value;
-  }
-
-
-  public Operation getOperation() {
-    return operation;
   }
 }

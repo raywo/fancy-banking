@@ -1,12 +1,18 @@
 package de.raywo.banking.textui.ui;
 
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.Button;
+import com.googlecode.lanterna.gui2.EmptySpace;
+import com.googlecode.lanterna.gui2.GridLayout;
+import com.googlecode.lanterna.gui2.Panel;
+import com.googlecode.lanterna.gui2.table.Table;
+import com.googlecode.lanterna.gui2.table.TableModel;
 import de.raywo.banking.textui.logic.Customer;
 import de.raywo.banking.textui.operations.Operation;
 import de.raywo.banking.textui.operations.ShowMainMenuOperation;
 import de.raywo.banking.textui.persistence.CustomerRepository;
 
+import java.text.DateFormat;
 import java.util.Comparator;
 
 public class ShowAllCustomersWindow extends ObservableBasicWindow {
@@ -25,18 +31,35 @@ public class ShowAllCustomersWindow extends ObservableBasicWindow {
 
   private void initWindow() {
     Panel panel = new Panel();
-    panel.setLayoutManager(new GridLayout(2));
+    panel.setLayoutManager(new GridLayout(1));
+
+    panel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+
+    Table<String> table = new Table<>("Ku-Nr.", "Name", "Geburtsdatum");
+    TableModel<String> model = table.getTableModel();
+    table.setPreferredSize(new TerminalSize(80, 15));
 
     repository.allCustomers()
         .values()
         .stream()
         .sorted(Comparator.comparingLong(Customer::getCustomerID))
         .forEach(customer -> {
-          panel.addComponent(new Label(customer.getCustomerID().toString()));
-          panel.addComponent(new Label(customer.getName()));
+          DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG);
+          String dayOfBirth = "- keine Angabe –";
+
+          if (customer.getDayOfBirth() != null) {
+            dayOfBirth = dateFormat.format(customer.getDayOfBirth());
+          }
+
+          model.addRow(
+              customer.getCustomerID().toString(),
+              customer.getName(),
+              dayOfBirth
+          );
         });
 
-    panel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+    panel.addComponent(table);
+
     panel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
 
     Coordinator coordinator = Coordinator.instance();

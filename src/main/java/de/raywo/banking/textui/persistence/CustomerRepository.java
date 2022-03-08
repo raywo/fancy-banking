@@ -33,4 +33,9 @@ public class CustomerRepository {
         .orElse(0L)
         + 1L;
   }
+
+
+  public int count() {
+    return customers.size();
+  }
 }

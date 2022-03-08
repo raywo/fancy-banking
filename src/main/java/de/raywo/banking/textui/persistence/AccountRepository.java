@@ -22,4 +22,9 @@ public class AccountRepository {
   public Map<String, Account> allAccounts() {
     return accounts;
   }
+
+
+  public int count() {
+    return accounts.size();
+  }
 }

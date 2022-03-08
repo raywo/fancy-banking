@@ -30,7 +30,14 @@ public class CreateCustomerWindow extends ObservableBasicWindow {
           .getCreateCustomerOperation(this, nameTextBox.getText());
       this.setOperation(createCustomer);
     });
+    final Button cancelButton = new Button("Abbrechen", () -> {
+      Operation returnToMain = Coordinator.instance()
+          .getBackToMainOperation(this);
+      this.setOperation(returnToMain);
+    });
+
     panel.addComponent(createButton);
+    panel.addComponent(cancelButton);
 
     setComponent(panel);
   }

@@ -20,8 +20,10 @@ public class Coordinator implements PropertyChangeListener {
   @Setter
   private MultiWindowTextGUI gui;
 
-  private AccountRepository accountRepository = new AccountRepository();
-  private CustomerRepository customerRepository = new CustomerRepository();
+  @Getter
+  private final AccountRepository accountRepository = new AccountRepository();
+  @Getter
+  private final CustomerRepository customerRepository = new CustomerRepository();
 
 
   private Coordinator() {
@@ -81,6 +83,14 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public ObservableBasicWindow getShowAllAccountsWindow() {
+    ObservableBasicWindow window = new ShowAllAccountsWindow("Alle Konten", accountRepository);
+    window.addListener(this);
+
+    return window;
+  }
+
+
   public ObservableBasicWindow getCreateCustomerWindow() {
     ObservableBasicWindow window = new CreateCustomerWindow("Kunden anlegen");
     window.addListener(this);
@@ -96,6 +106,11 @@ public class Coordinator implements PropertyChangeListener {
 
   public Operation getShowAllCustomersOperation(ObservableBasicWindow comingFrom) {
     return new ShowAllCustomersOperation(this.gui, comingFrom, this.getShowAllCustomersWindow());
+  }
+
+
+  public Operation getShowAllAccountsOperation(ObservableBasicWindow comingFrom) {
+    return new ShowAllAccountsOperation(this.gui, comingFrom, this.getShowAllAccountsWindow());
   }
 
 

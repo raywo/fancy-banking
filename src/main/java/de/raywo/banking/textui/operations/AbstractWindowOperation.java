@@ -28,6 +28,7 @@ public abstract class AbstractWindowOperation implements Operation {
       this.gui.removeWindow(this.windowToRemove());
     }
 
+    windowToShow().updateState();
     gui.addWindowAndWait(windowToShow());
   }
 
