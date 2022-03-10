@@ -5,6 +5,10 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import de.raywo.banking.textui.operations.Operation;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+
 public class CreateCustomerWindow extends ObservableBasicWindow {
 
   private final Label nameErrorLabel;
@@ -17,6 +21,7 @@ public class CreateCustomerWindow extends ObservableBasicWindow {
   private boolean dayOfBirthIsValid = true;
 
   private static final String NAME_ERROR_MESSAGE = "Muss mindestens zwei Zeichen haben.";
+  private Date dayOfBirth;
 
 
   public CreateCustomerWindow(String title) {
@@ -53,7 +58,10 @@ public class CreateCustomerWindow extends ObservableBasicWindow {
   private void addButtonRow(Panel panel) {
     createButton.addListener(event -> {
       Operation createCustomer = Coordinator.instance()
-          .getCreateCustomerOperation(this, nameTextBox.getText());
+          .getCreateCustomerOperation(
+              this,
+              nameTextBox.getText(),
+              dayOfBirth);
       this.setOperation(createCustomer);
     });
     createButton.setEnabled(formIsValid());
@@ -117,7 +125,18 @@ public class CreateCustomerWindow extends ObservableBasicWindow {
 
 
   private boolean isDayOfBirthValid(String value) {
-    return value.isBlank();
+    if (value.isBlank()) {
+      return true;
+    }
+
+    try {
+      DateFormat df = DateFormat.getDateInstance(DateFormat.MEDIUM);
+      dayOfBirth = df.parse(value);
+
+      return dayOfBirth.before(new Date());
+    } catch (ParseException e) {
+      return false;
+    }
   }
 
 

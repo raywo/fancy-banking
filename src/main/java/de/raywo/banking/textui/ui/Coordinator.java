@@ -10,11 +10,12 @@ import lombok.extern.log4j.Log4j2;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Date;
 
 @Log4j2
 public class Coordinator implements PropertyChangeListener {
 
-  private static Coordinator instance;
+  private static final Coordinator instance = new Coordinator();
 
   @Getter
   @Setter
@@ -27,27 +28,10 @@ public class Coordinator implements PropertyChangeListener {
 
 
   private Coordinator() {
-//    try (Terminal terminal = new DefaultTerminalFactory().createTerminal()) {
-//      // Setup terminal and screen layers
-//      Screen screen = new TerminalScreen(terminal);
-//      screen.startScreen();
-//
-//      gui = new MultiWindowTextGUI(screen,
-//          new DefaultWindowManager(),
-//          new EmptySpace(TextColor.ANSI.BLUE));
-//
-////      screen.stopScreen();
-//    } catch (IOException e) {
-//      log.error(e.getMessage());
-//    }
   }
 
 
   public static Coordinator instance() {
-    if (instance == null) {
-      instance = new Coordinator();
-    }
-
     return instance;
   }
 
@@ -114,13 +98,16 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
-  public Operation getCreateCustomerOperation(ObservableBasicWindow comingFrom, String name) {
+  public Operation getCreateCustomerOperation(ObservableBasicWindow comingFrom,
+                                              String name,
+                                              Date dayOfBirth) {
     return new CreateCustomerOperation(
         this.gui,
         comingFrom,
         this.getMainWindow(),
         customerRepository,
-        name);
+        name,
+        dayOfBirth);
   }
 
 

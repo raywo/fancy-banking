@@ -84,6 +84,7 @@ public class Main {
 //      }
 
       Coordinator coordinator = Coordinator.instance();
+      coordinator.setGui(gui);
 
       Customer ray = new Customer(1L, "Ray Wojciechowski");
       CurrentAccount currentAccount = new CurrentAccount("DE1234567890", ray);
@@ -101,8 +102,6 @@ public class Main {
         customer.setDayOfBirth(dateFormat.parse("2000-01-06"));
         coordinator.getCustomerRepository().add(customer);
       }
-
-      coordinator.setGui(gui);
 
       coordinator.start();
 
