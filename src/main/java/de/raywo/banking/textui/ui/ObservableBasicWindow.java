@@ -14,7 +14,7 @@ import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.googlecode.lanterna.gui2.Window.Hint.EXPANDED;
+import static com.googlecode.lanterna.gui2.Window.Hint.FULL_SCREEN;
 import static com.googlecode.lanterna.gui2.Window.Hint.NO_POST_RENDERING;
 
 public abstract class ObservableBasicWindow extends BasicWindow implements BasePaneListener<Window> {
@@ -29,7 +29,7 @@ public abstract class ObservableBasicWindow extends BasicWindow implements BaseP
     changeSupport = new PropertyChangeSupport(this);
 
     setHints(List.of(
-        EXPANDED,
+        FULL_SCREEN,
         NO_POST_RENDERING)
     );
 

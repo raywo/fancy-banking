@@ -15,6 +15,7 @@ import de.raywo.banking.textui.operations.ShowMainMenuOperation;
 import de.raywo.banking.textui.persistence.AccountRepository;
 
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Comparator;
 
 public class ShowAllAccountsWindow extends ObservableBasicWindow {
@@ -44,18 +45,19 @@ public class ShowAllAccountsWindow extends ObservableBasicWindow {
         .stream()
         .sorted(Comparator.comparing(Account::getIban))
         .forEach(account -> {
-          DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
+          NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
           String limitString = "";
           String interestRateString = "";
 
           switch (account.getAccountType()) {
             case CURRENT_ACCOUNT -> {
               CurrentAccount currentAccount = (CurrentAccount) account;
-              limitString = decimalFormat.format(currentAccount.getLimit()) + "€";
+              limitString = currencyFormat.format(currentAccount.getLimit().doubleValue());
             }
 
             case SAVINGS_ACCOUNT -> {
               SavingsAccount savingsAccount = (SavingsAccount) account;
+              DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
               interestRateString = decimalFormat.format(savingsAccount.getInterestRate()) + "%";
             }
           }
@@ -63,7 +65,7 @@ public class ShowAllAccountsWindow extends ObservableBasicWindow {
           model.addRow(
               account.getIban(),
               account.getAccountType().typeName,
-              decimalFormat.format(account.getBalance()),
+              currencyFormat.format(account.getBalance()),
               limitString,
               interestRateString,
               String.format("(%d) %s",

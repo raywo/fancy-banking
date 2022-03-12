@@ -2,7 +2,9 @@ package de.raywo.banking.textui;
 
 import com.github.javafaker.Faker;
 import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.SimpleTheme;
 import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.graphics.Theme;
 import com.googlecode.lanterna.gui2.DefaultWindowManager;
 import com.googlecode.lanterna.gui2.EmptySpace;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
@@ -20,10 +22,16 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.googlecode.lanterna.TextColor.ANSI.*;
+
 public class Main {
 
-
   public static void main(String[] args) throws IOException {
+    new Main();
+  }
+
+
+  private Main() throws IOException {
     try (Terminal terminal = new DefaultTerminalFactory().createTerminal()) {
       // Setup terminal and screen layers
       Screen screen = new TerminalScreen(terminal);
@@ -33,48 +41,37 @@ public class Main {
           new DefaultWindowManager(),
           new EmptySpace(TextColor.ANSI.BLUE));
 
-//      String[] splash = {
-//          "    ______                          ____              __   _",
-//          "   / ____/___ _____  _______  __   / __ )____ _____  / /__(_)___  ____ _",
-//          "  / /_  / __ `/ __ \\/ ___/ / / /  / __  / __ `/ __ \\/ //_/ / __ \\/ __ `/",
-//          " / __/ / /_/ / / / / /__/ /_/ /  / /_/ / /_/ / / / / ,< / / / / / /_/ /",
-//          "/_/    \\__,_/_/ /_/\\___/\\__, /  /_____/\\__,_/_/ /_/_/|_/_/_/ /_/\\__, /",
-//          "                       /____/                                  /____/"
-//      };
+      setTheme(gui);
 
-      String[] splash = {
-          "$$$$$$$$\\                                                                        ",
-          "$$  _____|                                                                        ",
-          "$$ |   $$$$$$\\  $$$$$$$\\   $$$$$$$\\ $$\\   $$\\                                ",
-          "$$$$$\\ \\____$$\\ $$  __$$\\ $$  _____|$$ |  $$ |                                ",
-          "$$  __|$$$$$$$ |$$ |  $$ |$$ /      $$ |  $$ |                                    ",
-          "$$ |  $$  __$$ |$$ |  $$ |$$ |      $$ |  $$ |                                    ",
-          "$$ |  \\$$$$$$$ |$$ |  $$ |\\$$$$$$$\\ \\$$$$$$$ |                                ",
-          "\\__|   \\_______|\\__|  \\__| \\_______| \\____$$ |                              ",
-          "                                    $$\\   $$ |                                   ",
-          "                                    \\$$$$$$  |                                   ",
-          "                                     \\______/                                    ",
-          "             $$$$$$$\\                      $$\\       $$\\                       ",
-          "             $$  __$$\\                     $$ |      \\__|                       ",
-          "             $$ |  $$ | $$$$$$\\  $$$$$$$\\  $$ |  $$\\ $$\\ $$$$$$$\\   $$$$$$\\ ",
-          "             $$$$$$$\\ | \\____$$\\ $$  __$$\\ $$ | $$  |$$ |$$  __$$\\ $$  __$$\\",
-          "             $$  __$$\\  $$$$$$$ |$$ |  $$ |$$$$$$  / $$ |$$ |  $$ |$$ /  $$ |    ",
-          "             $$ |  $$ |$$  __$$ |$$ |  $$ |$$  _$$<  $$ |$$ |  $$ |$$ |  $$ |     ",
-          "             $$$$$$$  |\\$$$$$$$ |$$ |  $$ |$$ | \\$$\\ $$ |$$ |  $$ |\\$$$$$$$ | ",
-          "             \\_______/  \\_______|\\__|  \\__|\\__|  \\__|\\__|\\__|  \\__| \\____$$ |",
-          "                                                                   $$\\   $$ |",
-          "                                                                   \\$$$$$$  |",
-          "                                                                    \\______/ "
-      };
+      showSplashScreen(screen);
+      startGui(gui);
+      screen.stopScreen();
+    }
+  }
 
-      TextGraphics textGraphics = screen.newTextGraphics();
-      textGraphics.setForegroundColor(TextColor.ANSI.YELLOW_BRIGHT);
 
-      for (int i = 0; i < splash.length; i++) {
-        textGraphics.putString(1, i + 1, splash[i]);
-      }
+  private void startGui(MultiWindowTextGUI gui) {
+    Coordinator coordinator = Coordinator.instance();
+    coordinator.setGui(gui);
 
-      screen.refresh();
+    createFakeData(coordinator);
+
+    coordinator.start();
+  }
+
+
+  private void showSplashScreen(Screen screen) throws IOException {
+    String[] splash = getSplash();
+
+    TextGraphics textGraphics = screen.newTextGraphics();
+    textGraphics.setForegroundColor(ANSI.YELLOW_BRIGHT);
+
+    for (int i = 0; i < splash.length; i++) {
+      textGraphics.putString(1, i + 1, splash[i]);
+    }
+
+    screen.refresh();
+    Thread.yield();
 
 //      try {
 //        Thread.sleep(3000);
@@ -82,20 +79,49 @@ public class Main {
 //        Thread.currentThread().interrupt();
 //        e.printStackTrace();
 //      }
-
-      Coordinator coordinator = Coordinator.instance();
-      coordinator.setGui(gui);
-
-      createFakeData(coordinator);
-
-      coordinator.start();
-
-      screen.stopScreen();
-    }
   }
 
 
-  private static void createFakeData(Coordinator coordinator) {
+  private String[] getSplash() {
+    return new String[]{
+        "$$$$$$$$\\                                                                        ",
+        "$$  _____|                                                                        ",
+        "$$ |   $$$$$$\\  $$$$$$$\\   $$$$$$$\\ $$\\   $$\\                                ",
+        "$$$$$\\ \\____$$\\ $$  __$$\\ $$  _____|$$ |  $$ |                                ",
+        "$$  __|$$$$$$$ |$$ |  $$ |$$ /      $$ |  $$ |                                    ",
+        "$$ |  $$  __$$ |$$ |  $$ |$$ |      $$ |  $$ |                                    ",
+        "$$ |  \\$$$$$$$ |$$ |  $$ |\\$$$$$$$\\ \\$$$$$$$ |                                ",
+        "\\__|   \\_______|\\__|  \\__| \\_______| \\____$$ |                              ",
+        "                                    $$\\   $$ |                                   ",
+        "                                    \\$$$$$$  |                                   ",
+        "                                     \\______/                                    ",
+        "             $$$$$$$\\                      $$\\       $$\\                       ",
+        "             $$  __$$\\                     $$ |      \\__|                       ",
+        "             $$ |  $$ | $$$$$$\\  $$$$$$$\\  $$ |  $$\\ $$\\ $$$$$$$\\   $$$$$$\\ ",
+        "             $$$$$$$\\ | \\____$$\\ $$  __$$\\ $$ | $$  |$$ |$$  __$$\\ $$  __$$\\",
+        "             $$  __$$\\  $$$$$$$ |$$ |  $$ |$$$$$$  / $$ |$$ |  $$ |$$ /  $$ |    ",
+        "             $$ |  $$ |$$  __$$ |$$ |  $$ |$$  _$$<  $$ |$$ |  $$ |$$ |  $$ |     ",
+        "             $$$$$$$  |\\$$$$$$$ |$$ |  $$ |$$ | \\$$\\ $$ |$$ |  $$ |\\$$$$$$$ | ",
+        "             \\_______/  \\_______|\\__|  \\__|\\__|  \\__|\\__|\\__|  \\__| \\____$$ |",
+        "                                                                   $$\\   $$ |",
+        "                                                                   \\$$$$$$  |",
+        "                                                                    \\______/ "
+    };
+  }
+
+
+  private void setTheme(MultiWindowTextGUI gui) {
+    Theme theme = SimpleTheme.makeTheme(
+        false,
+        YELLOW, BLACK,
+        YELLOW, BLACK_BRIGHT,
+        BLACK, YELLOW,
+        BLACK);
+    gui.setTheme(theme);
+  }
+
+
+  private void createFakeData(Coordinator coordinator) {
     Faker faker = new Faker(Locale.GERMANY);
 
     Customer ray = new Customer(1L, "Ray Wojciechowski");

@@ -5,13 +5,53 @@ import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.input.KeyStroke;
 import de.raywo.banking.textui.logic.Account;
 import de.raywo.banking.textui.operations.Operation;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainMenuWindow extends ObservableBasicWindow {
 
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  private static class MenuItem {
+    private char hotKey;
+    private String label;
+    private Runnable action;
+  }
+
+  @NoArgsConstructor
+  private static class MenuSeparator extends MenuItem {
+    private static final String MESSAGE = "This is method is not used in a MenuSeparator.";
+
+
+    @Override
+    public char getHotKey() {
+      throw new NotImplementedException(MESSAGE);
+    }
+
+
+    @Override
+    public String getLabel() {
+      throw new NotImplementedException(MESSAGE);
+    }
+
+
+    @Override
+    public Runnable getAction() {
+      throw new NotImplementedException(MESSAGE);
+    }
+  }
+
+
+  private final List<MenuItem> menuEntries = new ArrayList<>();
 
   private Label accountCountLabel;
   private Label customerCountLabel;
@@ -21,24 +61,31 @@ public class MainMenuWindow extends ObservableBasicWindow {
   public MainMenuWindow(String title) {
     super(title);
 
+    menuEntries.add(new MenuItem('1', "1. Kunden anlegen", this::createCustomer));
+    menuEntries.add(new MenuItem('2', "2. Konto anlegen", this::createAccount));
+    menuEntries.add(new MenuItem('3', "3. alle Kunden anzeigen", this::showAllCustomers));
+    menuEntries.add(new MenuItem('4', "4. alle Konten anzeigen", this::showAllAccounts));
+    menuEntries.add(new MenuItem('5', "5. auf Konto einzahlen", this::depositOnAccount));
+    menuEntries.add(new MenuItem('6', "6. von Konto abheben", this::withdrawFromAccount));
+    menuEntries.add(new MenuSeparator());
+    menuEntries.add(new MenuItem('x', "x. Beenden", this::close));
+
     initWindow();
   }
 
 
   private void initWindow() {
-    Label result = new Label("");
-    Panel mainPanel = new Panel();
     int columns = 2;
+    Panel mainPanel = Panels.grid(columns);
+
     LayoutData horizontalFill = GridLayout.createHorizontallyFilledLayoutData(1);
     LayoutData horizontalTopFill = GridLayout.createLayoutData(
         GridLayout.Alignment.FILL,
         GridLayout.Alignment.BEGINNING,
         true, false,
         1, 5);
-    mainPanel.setLayoutManager(new GridLayout(columns));
 
-    Panel buttonPanel = getButtonPanel(result, horizontalFill);
-
+    Panel buttonPanel = getButtonPanel();
     Panel infoPanel = getInfoPanel();
 
     mainPanel.addComponent(buttonPanel, horizontalFill);
@@ -55,26 +102,23 @@ public class MainMenuWindow extends ObservableBasicWindow {
     int customerCount = Coordinator.instance().getCustomerRepository().count();
     BigDecimal totalBalance = getTotalBalance();
 
-    DecimalFormat df = new DecimalFormat("#,##0.00");
-    String totalBalanceString = df.format(totalBalance);
+    NumberFormat numberFormat = NumberFormat.getCurrencyInstance();
+    String totalBalanceString = numberFormat.format(totalBalance.doubleValue());
 
     accountCountLabel.setText(accountCount + "");
     customerCountLabel.setText(customerCount + "");
-    totalBalanceLabel.setText(totalBalanceString + "€");
+    totalBalanceLabel.setText(totalBalanceString);
   }
 
 
   @Override
   public void onUnhandledInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
-    switch (keyStroke.getCharacter()) {
-      case '1' -> createCustomer();
-      case '2' -> createAccount();
-      case '3' -> showAllCustomers();
-      case '4' -> showAllAccounts();
-      case '5' -> depositOnAccount();
-      case '6' -> withdrawFromAccount();
-      case 'x' -> close();
-      default -> super.onUnhandledInput(window, keyStroke, atomicBoolean);
+    Character character = keyStroke.getCharacter();
+
+    if (character != null) {
+      menuEntries.stream()
+          .filter(menuItem -> menuItem.getHotKey() == character)
+          .forEach(menuItem -> menuItem.getAction().run());
     }
   }
 
@@ -112,24 +156,24 @@ public class MainMenuWindow extends ObservableBasicWindow {
   }
 
 
-  private Panel getButtonPanel(Label result, LayoutData horizontalFill) {
+  private Panel getButtonPanel() {
     Panel buttonPanel = new Panel();
 
     final EmptySpace emptyLine = new EmptySpace(new TerminalSize(1, 1));
-    buttonPanel.addComponent(emptyLine, horizontalFill);
+    buttonPanel.addComponent(emptyLine);
 
-    buttonPanel.addComponent(new Button("1. Kunden anlegen", this::createCustomer));
-    buttonPanel.addComponent(new Button("2. Konto anlegen", this::createAccount));
-    buttonPanel.addComponent(new Button("3. alle Kunden anzeigen", this::showAllCustomers));
-    buttonPanel.addComponent(new Button("4. alle Konten anzeigen", this::showAllAccounts));
-    buttonPanel.addComponent(new Button("5. auf Konto einzahlen", this::depositOnAccount));
-    buttonPanel.addComponent(new Button("6. von Konto abheben", this::withdrawFromAccount));
-    buttonPanel.addComponent(new Separator(Direction.HORIZONTAL), horizontalFill);
-    buttonPanel.addComponent(new Button("x. Beenden", this::close));
+    menuEntries.forEach(menuItem -> {
+      if (menuItem instanceof MenuSeparator) {
+        final Separator separator = new Separator(Direction.HORIZONTAL);
+        separator.setPreferredSize(TerminalSize.ONE.withColumns(17));
+        buttonPanel.addComponent(separator);
+      } else {
+        buttonPanel.addComponent(new Button(menuItem.getLabel(), menuItem.getAction()));
+      }
+    });
 
-    buttonPanel.addComponent(emptyLine, horizontalFill);
+    buttonPanel.addComponent(emptyLine);
 
-    buttonPanel.addComponent(result);
     return buttonPanel;
   }
 
