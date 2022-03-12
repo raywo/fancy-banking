@@ -2,11 +2,13 @@ package de.raywo.banking.textui.ui;
 
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.input.KeyStroke;
 import de.raywo.banking.textui.logic.Account;
 import de.raywo.banking.textui.operations.Operation;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainMenuWindow extends ObservableBasicWindow {
 
@@ -62,6 +64,21 @@ public class MainMenuWindow extends ObservableBasicWindow {
   }
 
 
+  @Override
+  public void onUnhandledInput(Window window, KeyStroke keyStroke, AtomicBoolean atomicBoolean) {
+    switch (keyStroke.getCharacter()) {
+      case '1' -> createCustomer();
+      case '2' -> createAccount();
+      case '3' -> showAllCustomers();
+      case '4' -> showAllAccounts();
+      case '5' -> depositOnAccount();
+      case '6' -> withdrawFromAccount();
+      case 'x' -> close();
+      default -> super.onUnhandledInput(window, keyStroke, atomicBoolean);
+    }
+  }
+
+
   private Panel getInfoPanel() {
     int columns = 2;
     LayoutData horizontalFill = GridLayout.createHorizontallyFilledLayoutData(columns);
@@ -101,44 +118,52 @@ public class MainMenuWindow extends ObservableBasicWindow {
     final EmptySpace emptyLine = new EmptySpace(new TerminalSize(1, 1));
     buttonPanel.addComponent(emptyLine, horizontalFill);
 
-    buttonPanel.addComponent(new Button("1. Kunden anlegen", () -> {
-      Operation inputCustomer = Coordinator.instance().getInputCustomerDataOperation(this);
-      this.setOperation(inputCustomer);
-    }));
-
-    buttonPanel.addComponent(new Button("2. Konto anlegen", () -> {
-      Operation inputAccount = Coordinator.instance().getInputAccountDataOperation(this);
-      this.setOperation(inputAccount);
-    }));
-
-    buttonPanel.addComponent(new Button("3. alle Kunden anzeigen", () -> {
-      Operation showAllCustomers = Coordinator.instance().getShowAllCustomersOperation(this);
-      this.setOperation(showAllCustomers);
-    }));
-
-    buttonPanel.addComponent(new Button("4. alle Konten anzeigen", () -> {
-      Operation showAllAccounts = Coordinator.instance().getShowAllAccountsOperation(this);
-      this.setOperation(showAllAccounts);
-    }));
-
-    buttonPanel.addComponent(new Button("5. auf Konto einzahlen", () -> {
-      result.setText("auf Konto einzahlen");
-    }));
-
-    buttonPanel.addComponent(new Button("6. von Konto abheben", () -> {
-      result.setText("von Konto abheben");
-    }));
-
+    buttonPanel.addComponent(new Button("1. Kunden anlegen", this::createCustomer));
+    buttonPanel.addComponent(new Button("2. Konto anlegen", this::createAccount));
+    buttonPanel.addComponent(new Button("3. alle Kunden anzeigen", this::showAllCustomers));
+    buttonPanel.addComponent(new Button("4. alle Konten anzeigen", this::showAllAccounts));
+    buttonPanel.addComponent(new Button("5. auf Konto einzahlen", this::depositOnAccount));
+    buttonPanel.addComponent(new Button("6. von Konto abheben", this::withdrawFromAccount));
     buttonPanel.addComponent(new Separator(Direction.HORIZONTAL), horizontalFill);
-
-    buttonPanel.addComponent(new Button("x. Beenden", () -> {
-      result.setText("Beenden");
-      close();
-    }));
+    buttonPanel.addComponent(new Button("x. Beenden", this::close));
 
     buttonPanel.addComponent(emptyLine, horizontalFill);
 
     buttonPanel.addComponent(result);
     return buttonPanel;
+  }
+
+
+  private void createCustomer() {
+    Operation inputCustomer = Coordinator.instance().getInputCustomerDataOperation(this);
+    this.setOperation(inputCustomer);
+  }
+
+
+  private void createAccount() {
+    Operation inputAccount = Coordinator.instance().getInputAccountDataOperation(this);
+    this.setOperation(inputAccount);
+  }
+
+
+  private void showAllCustomers() {
+    Operation showAllCustomers = Coordinator.instance().getShowAllCustomersOperation(this);
+    this.setOperation(showAllCustomers);
+  }
+
+
+  private void showAllAccounts() {
+    Operation showAllAccounts = Coordinator.instance().getShowAllAccountsOperation(this);
+    this.setOperation(showAllAccounts);
+  }
+
+
+  private void depositOnAccount() {
+    System.out.println("auf Konto einzahlen");
+  }
+
+
+  private void withdrawFromAccount() {
+    System.out.println("von Konto abheben");
   }
 }
