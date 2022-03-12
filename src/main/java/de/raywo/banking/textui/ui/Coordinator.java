@@ -125,7 +125,7 @@ public class Coordinator implements PropertyChangeListener {
                                              Account account) {
     return new CreateAccountOperation(this.gui,
         comingFrom,
-        this.getCreateAccountWindow(),
+        this.getMainWindow(),
         this.accountRepository,
         account);
   }

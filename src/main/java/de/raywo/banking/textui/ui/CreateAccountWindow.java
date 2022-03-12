@@ -5,39 +5,50 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import de.raywo.banking.textui.logic.*;
 import de.raywo.banking.textui.operations.Operation;
+import lombok.SneakyThrows;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CreateAccountWindow extends ObservableBasicWindow implements RadioBoxList.Listener {
+@SuppressWarnings("java:S1301")
+public class CreateAccountWindow extends ObservableBasicWindow {
   private final Button createButton;
-  private final Label ibanErrorLabel;
-  private final Label additionalInfoLabel;
+
   private final TextBox ibanTextBox;
   private final TextBox additionalInfoTextBox;
-  private final RadioBoxList<AccountType> radioBoxList;
+  private final ComboBox<Customer> ownerComboBox;
+  private final RadioBoxList<AccountType> accountTypeBoxList;
+
+  private final Label additionalInfoLabel;
   private final Label unitLabel;
+
+  private final Label ownerErrorLabel;
+  private final Label ibanErrorLabel;
   private final Label additionalInfoErrorLabel;
 
+  private static final String OWNER_ERROR_MESSAGE = "muss ausgewählt werden";
   private static final String IBAN_ERROR_MESSAGE = "IBAN: zwei Buchstaben am Anfang und insgesamt 12 Stellen";
   private static final String LIMIT_ERROR_MESSAGE = "muss größer oder gleich 0€ sein";
   private static final String INTEREST_RATE_ERROR_MESSAGE = "muss größer oder gleich 0% sein";
 
-  private final Collection<Customer> customers;
   private Customer owner;
 
 
   public CreateAccountWindow(String title, Collection<Customer> customers) {
     super(title);
-    this.customers = customers;
 
+    ownerErrorLabel = new Label("");
     ibanErrorLabel = new Label("");
     additionalInfoErrorLabel = new Label("");
 
-    radioBoxList = new RadioBoxList<>();
+    ownerComboBox = new ComboBox<>(customers);
+    accountTypeBoxList = new RadioBoxList<>();
 
     ibanTextBox = new TextBox(TerminalSize.ONE.withColumns(30));
     additionalInfoLabel = new Label("");
@@ -50,14 +61,6 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
   }
 
 
-  @Override
-  public void onSelectionChanged(int selectedIndex, int previousSelection) {
-    setAdditionalLabel();
-    additionalInfoTextBox.setText("");
-    validateForm();
-  }
-
-
   private void initWindow() {
     Panel mainPanel = Panels.grid(2);
 
@@ -66,8 +69,8 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
     addTypeRow(mainPanel);
     addBlankRow(mainPanel, null);
 
-    addCustomerRow(mainPanel);
-    addBlankRow(mainPanel, null);
+    addOwnerRow(mainPanel);
+    addBlankRow(mainPanel, ownerErrorLabel);
 
     addIbanRow(mainPanel);
     addBlankRow(mainPanel, ibanErrorLabel);
@@ -87,25 +90,25 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
     panel.addComponent(new Label("Kontoart:"));
 
     Arrays.stream(AccountType.values())
-        .forEach(radioBoxList::addItem);
-    radioBoxList.setCheckedItemIndex(0);
-    radioBoxList.addListener(this);
+        .forEach(accountTypeBoxList::addItem);
+    accountTypeBoxList.setCheckedItemIndex(0);
+    accountTypeBoxList.addListener(this::onTypeChanged);
 
-    setAdditionalLabel();
+    setAdditionalLabel(getAccountType());
 
-    panel.addComponent(radioBoxList);
+    panel.addComponent(accountTypeBoxList);
   }
 
 
-  private void addCustomerRow(Panel panel) {
-    ComboBox<Customer> customerComboBox = new ComboBox<>(customers);
-    customerComboBox.setSelectedIndex(-1);
-    customerComboBox.addListener((selectedIndex, previousIndex, changedByUserInteraction) -> {
-      owner = customerComboBox.getSelectedItem();
+  private void addOwnerRow(Panel panel) {
+    ownerComboBox.setSelectedIndex(-1);
+    ownerComboBox.addListener((selectedIndex, previousIndex, changedByUserInteraction) -> {
+      owner = ownerComboBox.getSelectedItem();
+      validateOwner();
     });
 
     panel.addComponent(new Label("Inhaber:"));
-    panel.addComponent(customerComboBox);
+    panel.addComponent(ownerComboBox);
   }
 
 
@@ -157,18 +160,23 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
   }
 
 
-  private void setAdditionalLabel() {
-    AccountType currentType = getAccountType();
+  private void onTypeChanged(int selectedIndex, int previousSelection) {
+    setAdditionalLabel(getAccountType());
+    additionalInfoTextBox.setText("");
+    validateForm();
+  }
 
+
+  private void setAdditionalLabel(AccountType currentType) {
     switch (currentType) {
-      case CURRENT_ACCOUNT:
+      case CURRENT_ACCOUNT -> {
         additionalInfoLabel.setText("Dispolimit:");
         unitLabel.setText("€");
-        break;
-      case SAVINGS_ACCOUNT:
+      }
+      case SAVINGS_ACCOUNT -> {
         additionalInfoLabel.setText("Habenzins:");
         unitLabel.setText("%");
-        break;
+      }
     }
   }
 
@@ -177,13 +185,25 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
     final String iban = ibanTextBox.getText();
     final String additionalValue = additionalInfoTextBox.getText();
 
-    return isIbanValid(iban) && isAdditionalValid(getAccountType(), additionalValue);
+    return isOwnerValid() && isIbanValid(iban) && isAdditionalValid(additionalValue);
   }
 
 
   private void validateForm() {
+    validateOwner();
     validateIban(ibanTextBox.getText(), false);
     validateAdditional(additionalInfoTextBox.getText(), false);
+  }
+
+
+  private void validateOwner() {
+    if (isOwnerValid()) {
+      ownerErrorLabel.setText("");
+    } else {
+      ownerErrorLabel.setText(OWNER_ERROR_MESSAGE);
+    }
+
+    createButton.setEnabled(formIsValid());
   }
 
 
@@ -201,7 +221,7 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
   private void validateAdditional(String value, boolean changedByUserInteraction) {
     AccountType accountType = getAccountType();
 
-    if (isAdditionalValid(accountType, value)) {
+    if (isAdditionalValid(value)) {
       additionalInfoErrorLabel.setText("");
     } else {
       switch (accountType) {
@@ -214,6 +234,11 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
   }
 
 
+  private boolean isOwnerValid() {
+    return owner != null;
+  }
+
+
   private boolean isIbanValid(String currentIban) {
     Pattern pattern = Pattern.compile("^[A-Z]{2}[0-9]{10}");
     final Matcher matcher = pattern.matcher(currentIban);
@@ -222,41 +247,48 @@ public class CreateAccountWindow extends ObservableBasicWindow implements RadioB
   }
 
 
-  private boolean isAdditionalValid(AccountType accountType, String value) {
+  private boolean isAdditionalValid(String value) {
     try {
-      return value.isBlank() || Double.parseDouble(value) >= 0;
-    } catch (NumberFormatException e) {
+      return value.isBlank() || getNumberFormat().parse(value).doubleValue() >= 0;
+    } catch (ParseException e) {
       return false;
     }
   }
 
 
-  private AccountType getAccountType() {
-    return radioBoxList.getCheckedItem();
+  private NumberFormat getNumberFormat() {
+    NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.GERMANY);
+    numberFormat.setMaximumFractionDigits(2);
+
+    return numberFormat;
   }
 
 
+  private AccountType getAccountType() {
+    return accountTypeBoxList.getCheckedItem();
+  }
+
+
+  @SneakyThrows
   private Account createAccount() {
     Account result = null;
     final String iban = ibanTextBox.getText();
     final String additionalValue = additionalInfoTextBox.getText();
+    final Number parsedNumber = getNumberFormat().parse(additionalValue);
 
     switch (getAccountType()) {
       case CURRENT_ACCOUNT -> {
-        double limitValue = Double.parseDouble(additionalValue);
-        BigDecimal limit = BigDecimal.valueOf(limitValue);
-
         CurrentAccount account = new CurrentAccount(iban, owner);
+
+        BigDecimal limit = BigDecimal.valueOf(parsedNumber.doubleValue());
         account.setLimit(limit);
 
         result = account;
       }
 
       case SAVINGS_ACCOUNT -> {
-        double interestRate = Double.parseDouble(additionalValue);
-
         SavingsAccount account = new SavingsAccount(iban, owner);
-        account.setInterestRate(interestRate);
+        account.setInterestRate(parsedNumber.doubleValue());
 
         result = account;
       }

@@ -10,7 +10,7 @@ import java.util.Date;
 public class CreateCustomerOperation extends AbstractWindowOperation {
   private final CustomerRepository repository;
   private final String name;
-  private Date dayOfBirth;
+  private final Date dayOfBirth;
 
 
   public CreateCustomerOperation(MultiWindowTextGUI gui,
