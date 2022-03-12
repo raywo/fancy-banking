@@ -1,5 +1,6 @@
 package de.raywo.banking.textui;
 
+import com.github.javafaker.Faker;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.gui2.DefaultWindowManager;
@@ -16,9 +17,8 @@ import de.raywo.banking.textui.ui.Coordinator;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class Main {
 
@@ -86,28 +86,41 @@ public class Main {
       Coordinator coordinator = Coordinator.instance();
       coordinator.setGui(gui);
 
-      Customer ray = new Customer(1L, "Ray Wojciechowski");
-      CurrentAccount currentAccount = new CurrentAccount("DE1234567890", ray);
-      currentAccount.setLimit(BigDecimal.valueOf(250L));
-      SavingsAccount savingsAccount = new SavingsAccount("DE2345678901", ray);
-      savingsAccount.setInterestRate(0.15);
-
-      coordinator.getCustomerRepository().add(ray);
-      coordinator.getAccountRepository().add(currentAccount);
-      coordinator.getAccountRepository().add(savingsAccount);
-
-      for (int i = 0; i < 25; i++) {
-        final Customer customer = new Customer((long) i, "Kunde " + (i + 1));
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        customer.setDayOfBirth(dateFormat.parse("2000-01-06"));
-        coordinator.getCustomerRepository().add(customer);
-      }
+      createFakeData(coordinator);
 
       coordinator.start();
 
       screen.stopScreen();
-    } catch (ParseException e) {
-      e.printStackTrace();
+    }
+  }
+
+
+  private static void createFakeData(Coordinator coordinator) {
+    Faker faker = new Faker(Locale.GERMANY);
+
+    Customer ray = new Customer(1L, "Ray Wojciechowski");
+    ray.setDayOfBirth(faker.date().birthday());
+
+    long digits = faker.number().numberBetween(1000000000L, 9999999999L);
+    CurrentAccount currentAccount = new CurrentAccount("DE" + digits, ray);
+    currentAccount.setLimit(BigDecimal.valueOf(250L));
+
+    digits = faker.number().numberBetween(1000000000L, 9999999999L);
+    SavingsAccount savingsAccount = new SavingsAccount("DE" + digits, ray);
+    savingsAccount.setInterestRate(0.15);
+
+    coordinator.getCustomerRepository().add(ray);
+    coordinator.getAccountRepository().add(currentAccount);
+    coordinator.getAccountRepository().add(savingsAccount);
+
+
+    for (long i = 2; i < 25; i++) {
+      String name = faker.name().fullName();
+      Date dayOfBirth = faker.date().birthday();
+
+      final Customer customer = new Customer(i, name);
+      customer.setDayOfBirth(dayOfBirth);
+      coordinator.getCustomerRepository().add(customer);
     }
   }
 }
