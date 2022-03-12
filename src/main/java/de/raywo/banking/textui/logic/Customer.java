@@ -3,6 +3,7 @@ package de.raywo.banking.textui.logic;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Objects;
 
@@ -37,7 +38,18 @@ public class Customer {
 
   @Override
   public String toString() {
-    return String.format("%s (geb. %s; KundenNr: %d)",
-        name, dayOfBirth, customerID);
+    return String.format("[%d] %s (geb. %s)",
+        customerID, name, formattedDayOfBirth());
+  }
+
+  private String formattedDayOfBirth() {
+    DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG);
+    String result = "--";
+
+    if (dayOfBirth != null) {
+      result = dateFormat.format(dayOfBirth);
+    }
+
+    return result;
   }
 }

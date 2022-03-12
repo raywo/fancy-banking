@@ -1,6 +1,7 @@
 package de.raywo.banking.textui.ui;
 
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
+import de.raywo.banking.textui.logic.Account;
 import de.raywo.banking.textui.operations.*;
 import de.raywo.banking.textui.persistence.AccountRepository;
 import de.raywo.banking.textui.persistence.CustomerRepository;
@@ -83,6 +84,15 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public ObservableBasicWindow getCreateAccountWindow() {
+    ObservableBasicWindow window = new CreateAccountWindow("Konto anlegen",
+        customerRepository.allCustomers().values());
+    window.addListener(this);
+
+    return window;
+  }
+
+
   public Operation getBackToMainOperation(ObservableBasicWindow comingFrom) {
     return new ShowMainMenuOperation(this.gui, comingFrom, this.getMainWindow());
   }
@@ -111,8 +121,23 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public Operation getCreateAccountOperation(ObservableBasicWindow comingFrom,
+                                             Account account) {
+    return new CreateAccountOperation(this.gui,
+        comingFrom,
+        this.getCreateAccountWindow(),
+        this.accountRepository,
+        account);
+  }
+
+
   public Operation getInputCustomerDataOperation(ObservableBasicWindow comingFrom) {
     return new InputCustomerDataOperation(this.gui, comingFrom, this.getCreateCustomerWindow());
+  }
+
+
+  public Operation getInputAccountDataOperation(ObservableBasicWindow comingFrom) {
+    return new InputAccountDataOperation(this.gui, comingFrom, this.getCreateAccountWindow());
   }
 
 }

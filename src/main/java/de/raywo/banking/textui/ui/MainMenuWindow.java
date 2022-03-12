@@ -107,7 +107,8 @@ public class MainMenuWindow extends ObservableBasicWindow {
     }));
 
     buttonPanel.addComponent(new Button("2. Konto anlegen", () -> {
-      result.setText("Konto anlegen");
+      Operation inputAccount = Coordinator.instance().getInputAccountDataOperation(this);
+      this.setOperation(inputAccount);
     }));
 
     buttonPanel.addComponent(new Button("3. alle Kunden anzeigen", () -> {
