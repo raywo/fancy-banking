@@ -203,7 +203,8 @@ public class MainMenuWindow extends ObservableBasicWindow {
 
 
   private void depositOnAccount() {
-    System.out.println("auf Konto einzahlen");
+    Operation deposit = Coordinator.instance().getInputDepositDataOperation(this);
+    this.setOperation(deposit);
   }
 
 

@@ -17,15 +17,13 @@ import java.util.Date;
 public class Coordinator implements PropertyChangeListener {
 
   private static final Coordinator instance = new Coordinator();
-
-  @Getter
-  @Setter
-  private MultiWindowTextGUI gui;
-
   @Getter
   private final AccountRepository accountRepository = new AccountRepository();
   @Getter
   private final CustomerRepository customerRepository = new CustomerRepository();
+  @Getter
+  @Setter
+  private MultiWindowTextGUI gui;
 
 
   private Coordinator() {
@@ -52,11 +50,21 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public Operation getBackToMainOperation(ObservableBasicWindow comingFrom) {
+    return new ShowMainMenuOperation(this.gui, comingFrom, this.getMainWindow());
+  }
+
+
   public ObservableBasicWindow getMainWindow() {
     ObservableBasicWindow window = new MainMenuWindow("Hauptmenü");
     window.addListener(this);
 
     return window;
+  }
+
+
+  public Operation getShowAllCustomersOperation(ObservableBasicWindow comingFrom) {
+    return new ShowAllCustomersOperation(this.gui, comingFrom, this.getShowAllCustomersWindow());
   }
 
 
@@ -68,6 +76,11 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public Operation getShowAllAccountsOperation(ObservableBasicWindow comingFrom) {
+    return new ShowAllAccountsOperation(this.gui, comingFrom, this.getShowAllAccountsWindow());
+  }
+
+
   public ObservableBasicWindow getShowAllAccountsWindow() {
     ObservableBasicWindow window = new ShowAllAccountsWindow("Alle Konten", accountRepository);
     window.addListener(this);
@@ -76,35 +89,12 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
-  public ObservableBasicWindow getCreateCustomerWindow() {
-    ObservableBasicWindow window = new CreateCustomerWindow("Kunden anlegen");
+  public ObservableBasicWindow getDepositWindow() {
+    ObservableBasicWindow window = new DepositWindow("auf Konto einzahlen",
+        this.accountRepository.allAccounts().values());
     window.addListener(this);
 
     return window;
-  }
-
-
-  public ObservableBasicWindow getCreateAccountWindow() {
-    ObservableBasicWindow window = new CreateAccountWindow("Konto anlegen",
-        customerRepository.allCustomers().values());
-    window.addListener(this);
-
-    return window;
-  }
-
-
-  public Operation getBackToMainOperation(ObservableBasicWindow comingFrom) {
-    return new ShowMainMenuOperation(this.gui, comingFrom, this.getMainWindow());
-  }
-
-
-  public Operation getShowAllCustomersOperation(ObservableBasicWindow comingFrom) {
-    return new ShowAllCustomersOperation(this.gui, comingFrom, this.getShowAllCustomersWindow());
-  }
-
-
-  public Operation getShowAllAccountsOperation(ObservableBasicWindow comingFrom) {
-    return new ShowAllAccountsOperation(this.gui, comingFrom, this.getShowAllAccountsWindow());
   }
 
 
@@ -136,8 +126,30 @@ public class Coordinator implements PropertyChangeListener {
   }
 
 
+  public ObservableBasicWindow getCreateCustomerWindow() {
+    ObservableBasicWindow window = new CreateCustomerWindow("Kunden anlegen");
+    window.addListener(this);
+
+    return window;
+  }
+
+
   public Operation getInputAccountDataOperation(ObservableBasicWindow comingFrom) {
     return new InputAccountDataOperation(this.gui, comingFrom, this.getCreateAccountWindow());
+  }
+
+
+  public ObservableBasicWindow getCreateAccountWindow() {
+    ObservableBasicWindow window = new CreateAccountWindow("Konto anlegen",
+        customerRepository.allCustomers().values());
+    window.addListener(this);
+
+    return window;
+  }
+
+
+  public Operation getInputDepositDataOperation(ObservableBasicWindow comingFrom) {
+    return new InputDepositDataOperation(this.gui, comingFrom, this.getDepositWindow());
   }
 
 }
