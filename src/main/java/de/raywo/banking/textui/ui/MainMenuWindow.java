@@ -117,7 +117,7 @@ public class MainMenuWindow extends ObservableBasicWindow {
 
     if (character != null) {
       menuEntries.stream()
-          .filter(menuItem -> menuItem.getHotKey() == character)
+          .filter(menuItem -> !(menuItem instanceof MenuSeparator) && menuItem.getHotKey() == character)
           .forEach(menuItem -> menuItem.getAction().run());
     }
   }
@@ -209,6 +209,7 @@ public class MainMenuWindow extends ObservableBasicWindow {
 
 
   private void withdrawFromAccount() {
-    System.out.println("von Konto abheben");
+    Operation deposit = Coordinator.instance().getInputWithdrawDataOperation(this);
+    this.setOperation(deposit);
   }
 }

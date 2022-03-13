@@ -46,10 +46,6 @@ public abstract class Account {
     this.balance = this.balance.subtract(amount);
   }
 
-  public String formattedBalance() {
-    return formattedValue(this.getBalance());
-  }
-
 
   @Override
   public boolean equals(Object o) {
@@ -75,6 +71,7 @@ public abstract class Account {
   }
 
 
+  @SuppressWarnings("java:S3400")
   public String specificInformation() {
     return "";
   }

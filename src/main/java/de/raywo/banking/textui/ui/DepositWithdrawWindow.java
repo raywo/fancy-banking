@@ -5,12 +5,33 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import de.raywo.banking.textui.logic.Account;
 import de.raywo.banking.textui.logic.IllegalAmountException;
+import de.raywo.banking.textui.logic.InsufficientBalanceException;
 import de.raywo.banking.textui.operations.Operation;
 
 import java.math.BigDecimal;
 import java.util.Collection;
 
-public class DepositWindow extends ObservableBasicWindow {
+public class DepositWithdrawWindow extends ObservableBasicWindow {
+
+  public enum BookingType {
+    DEPOSIT("auf Konto einzahlen", "Einzahlen"),
+    WITHDRAW("von Konto abheben", "Abheben");
+
+    private final String description;
+    private final String buttonLabel;
+
+
+    BookingType(String description, String buttonLabel) {
+      this.description = description;
+      this.buttonLabel = buttonLabel;
+    }
+
+
+    @Override
+    public String toString() {
+      return description;
+    }
+  }
 
   private static final String ACCOUNT_ERROR_MESSAGE = "Es muss ein Konto ausgewählt werden.";
   private static final String AMOUNT_NEGATIVE_ERROR_MESSAGE = "Der Betrag muss positiv sein.";
@@ -18,8 +39,9 @@ public class DepositWindow extends ObservableBasicWindow {
   private static final String AMOUNT_INSUFFICIENT_ERROR_MESSAGE = "Der Betrag ist zu hoch.";
 
   private final Collection<Account> accounts;
+  private final BookingType type;
 
-  private final Button createButton;
+  private final Button actionButton;
   private final Label accountErrorLabel;
   private final Label amountErrorLabel;
 
@@ -27,15 +49,16 @@ public class DepositWindow extends ObservableBasicWindow {
   private BigDecimal amount;
 
 
-  public DepositWindow(String title, Collection<Account> accounts) {
-    super(title);
+  public DepositWithdrawWindow(Collection<Account> accounts, BookingType type) {
+    super(type.description);
 
     this.accounts = accounts;
+    this.type = type;
 
     accountErrorLabel = new Label("");
     amountErrorLabel = new Label("");
 
-    createButton = new Button("Einzahlen");
+    actionButton = new Button(type.buttonLabel);
 
     initWindow();
     validateForm();
@@ -76,9 +99,7 @@ public class DepositWindow extends ObservableBasicWindow {
 
   private void addAmountRow(Panel panel) {
     TextBox amountTextBox = new TextBox(TerminalSize.ONE.withColumns(10));
-    amountTextBox.setTextChangeListener((value, byUserInteraction) -> {
-      extractAmount(value);
-    });
+    amountTextBox.setTextChangeListener((value, byUserInteraction) -> extractAmount(value));
     Panel amountPanel = Panels.horizontal(amountTextBox, new Label("€"));
 
     panel.addComponent(new Label("Betrag:"));
@@ -86,20 +107,25 @@ public class DepositWindow extends ObservableBasicWindow {
   }
 
 
+  @SuppressWarnings("java:S1301")
   private void addButtonRow(Panel panel) {
-    createButton.addListener(event -> {
+    actionButton.addListener(event -> {
       try {
-        selectedAccount.deposit(amount);
+        switch (type) {
+          case DEPOSIT -> selectedAccount.deposit(amount);
+          case WITHDRAW -> selectedAccount.withdraw(amount);
+        }
 
         Operation createCustomer = Coordinator.instance()
             .getBackToMainOperation(this);
         this.setOperation(createCustomer);
+
       } catch (IllegalAmountException e) {
         amountErrorLabel.setText(AMOUNT_NEGATIVE_ERROR_MESSAGE);
+      } catch (InsufficientBalanceException e) {
+        amountErrorLabel.setText(AMOUNT_INSUFFICIENT_ERROR_MESSAGE);
       }
     });
-
-//    createButton.setEnabled(formIsValid());
 
     final Button cancelButton = new Button("Abbrechen", () -> {
       Operation returnToMain = Coordinator.instance()
@@ -107,7 +133,7 @@ public class DepositWindow extends ObservableBasicWindow {
       this.setOperation(returnToMain);
     });
 
-    panel.addComponent(createButton);
+    panel.addComponent(actionButton);
     panel.addComponent(cancelButton);
   }
 
@@ -152,8 +178,10 @@ public class DepositWindow extends ObservableBasicWindow {
       }
 
       amountErrorLabel.setText("");
+      actionButton.setEnabled(true);
     } catch (NumberFormatException e) {
       amountErrorLabel.setText(AMOUNT_NOT_A_NUMBER_ERROR_MESSAGE);
+      actionButton.setEnabled(false);
     }
   }
 }

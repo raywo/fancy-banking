@@ -90,8 +90,19 @@ public class Coordinator implements PropertyChangeListener {
 
 
   public ObservableBasicWindow getDepositWindow() {
-    ObservableBasicWindow window = new DepositWindow("auf Konto einzahlen",
-        this.accountRepository.allAccounts().values());
+    ObservableBasicWindow window = new DepositWithdrawWindow(
+        this.accountRepository.allAccounts().values(),
+        DepositWithdrawWindow.BookingType.DEPOSIT);
+    window.addListener(this);
+
+    return window;
+  }
+
+
+  public ObservableBasicWindow getWithdrawWindow() {
+    ObservableBasicWindow window = new DepositWithdrawWindow(
+        this.accountRepository.allAccounts().values(),
+        DepositWithdrawWindow.BookingType.WITHDRAW);
     window.addListener(this);
 
     return window;
@@ -150,6 +161,11 @@ public class Coordinator implements PropertyChangeListener {
 
   public Operation getInputDepositDataOperation(ObservableBasicWindow comingFrom) {
     return new InputDepositDataOperation(this.gui, comingFrom, this.getDepositWindow());
+  }
+
+
+  public Operation getInputWithdrawDataOperation(ObservableBasicWindow comingFrom) {
+    return new InputDepositDataOperation(this.gui, comingFrom, this.getWithdrawWindow());
   }
 
 }

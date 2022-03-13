@@ -274,7 +274,11 @@ public class CreateAccountWindow extends ObservableBasicWindow {
     Account result = null;
     final String iban = ibanTextBox.getText();
     final String additionalValue = additionalInfoTextBox.getText();
-    final Number parsedNumber = getNumberFormat().parse(additionalValue);
+    Number parsedNumber = 0;
+
+    if (additionalValue != null && !additionalValue.isBlank()) {
+      parsedNumber = getNumberFormat().parse(additionalValue);
+    }
 
     switch (getAccountType()) {
       case CURRENT_ACCOUNT -> {

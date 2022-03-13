@@ -17,7 +17,7 @@ import java.util.Comparator;
 
 public class ShowAllCustomersWindow extends ObservableBasicWindow {
 
-  CustomerRepository repository;
+  private final CustomerRepository repository;
 
 
   public ShowAllCustomersWindow(String title, CustomerRepository repository) {
