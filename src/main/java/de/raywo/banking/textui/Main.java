@@ -82,6 +82,11 @@ public class Main {
   }
 
 
+  /**
+   * https://patorjk.com/software/taag/#p=display&f=Star%20Wars&t=Hallo%20David
+   *
+   * @return The splash message
+   */
   private String[] getSplash() {
     return new String[]{
         "$$$$$$$$\\                                                                        ",
